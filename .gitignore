@@ -1,0 +1,14 @@
+# Ignore local environment files
+.env
+server/.env
+*/.env
+
+# Python caches
+__pycache__/
+
+# Virtual environments
+venv/
+.venv/
+
+# macOS artifacts
+.DS_Store

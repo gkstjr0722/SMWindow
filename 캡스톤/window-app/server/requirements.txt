@@ -1,0 +1,7 @@
+fastapi
+uvicorn[standard]
+pydantic
+paho-mqtt
+requests
+python-dotenv
+firebase-admin
