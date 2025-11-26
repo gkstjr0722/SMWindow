@@ -39,7 +39,19 @@ export default defineConfig({
     },
   },
   server: {
-    host: "0.0.0.0",
-    port: 5173,
+      host: "0.0.0.0",
+      port: 5173,
+        proxy: {
+          '/api': {
+            target: 'http://172.20.10.5:8000',  // 또는 python 서버가 실제 돌아가는 주소
+            changeOrigin: true,
+            rewrite: path => path.replace(/^\/api/, "/api"),
+          },
+          '/esp32': {
+            target: "http://172.20.10.4:80", // 실제 ESP32 주소
+            changeOrigin: true,
+            rewrite: path => path.replace(/^\/esp32/, ""),
+          },
   },
+},
 });

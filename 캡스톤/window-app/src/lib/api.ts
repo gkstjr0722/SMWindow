@@ -1,4 +1,6 @@
-import { ESP32_BASE, SERVER_BASE } from "./env";
+// src/lib/api.ts
+
+import { API_BASE, ESP32_PROXY_BASE } from "./env";
 
 export interface WeatherResponse {
   name: string;
@@ -21,19 +23,15 @@ export class WeatherNotFoundError extends Error {
   }
 }
 
-export async function fetchWeather(
-  location: string,
-): Promise<WeatherResponse> {
+export async function fetchWeather(location: string): Promise<WeatherResponse> {
   const query = encodeURIComponent(location.trim());
-  const res = await fetch(`${SERVER_BASE}/api/weather?location=${query}`);
+  const res = await fetch(`${API_BASE}/weather?location=${query}`);
 
   if (!res.ok) {
     let detail: any = null;
     try {
       detail = await res.json();
-    } catch {
-      // ignore
-    }
+    } catch {}
 
     if (res.status === 404 && detail?.error === "LOCATION_NOT_FOUND") {
       throw new WeatherNotFoundError();
@@ -45,13 +43,11 @@ export async function fetchWeather(
   return res.json();
 }
 
-export async function searchRegions(
-  query: string,
-): Promise<RegionSuggestion[]> {
+export async function searchRegions(query: string): Promise<RegionSuggestion[]> {
   const trimmed = query.trim();
   if (!trimmed) return [];
   const q = encodeURIComponent(trimmed);
-  const res = await fetch(`${SERVER_BASE}/api/regions?query=${q}`);
+  const res = await fetch(`${API_BASE}/regions?query=${q}`);
   if (!res.ok) {
     throw new Error("지역 정보를 불러오지 못했습니다.");
   }
@@ -60,18 +56,11 @@ export async function searchRegions(
 
 export type WindowAction = "open" | "close" | "stop";
 
-export interface CommandResponse {
-  ok: boolean;
-  message?: string;
-}
-
-export async function sendWindowCommand(
-  action: WindowAction,
-): Promise<CommandResponse> {
-  const res = await fetch(`${ESP32_BASE}/command`, {
+export async function sendWindowCommand(action: WindowAction): Promise<{ ok: boolean; message?: string }> {
+  const res = await fetch(`http://localhost:8000/esp32/command`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ action }),
+    headers: { "Content-Type": "application/json" }
   });
 
   if (!res.ok) {
@@ -88,8 +77,7 @@ export interface WindowStatus {
 }
 
 export async function fetchWindowStatus(): Promise<WindowStatus> {
-  const res = await fetch(`${ESP32_BASE}/status`);
-
+  const res = await fetch(`http://localhost:8000/esp32/state`);
   if (!res.ok) {
     throw new Error(`ESP32 status failed with status ${res.status}`);
   }
